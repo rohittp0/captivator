@@ -27,7 +27,7 @@ class Device(models.Model):
         verbose_name_plural = 'Devices'
 
     def block(self):
-        data = run(f"wallu block {self.mac}", capture_output=True, shell=True)
+        data = run(f"walu block {self.mac}", capture_output=True, shell=True)
         if data.returncode == 0:
             self.blocked = True
             self.save()
@@ -43,7 +43,7 @@ class Device(models.Model):
         if self.disabled:
             return False
 
-        data = run(f"wallu allow {self.mac}", capture_output=True, shell=True)
+        data = run(f"walu allow {self.mac}", capture_output=True, shell=True)
         if data.returncode == 0:
             self.blocked = False
             self.save()
@@ -55,12 +55,12 @@ class Device(models.Model):
 
         return False
 
-    def get_by_ip(ip):
-        data = run(f"wallu json {ip}", capture_output=True, shell=True)
+    @staticmethod
+    def get_by_ip(ip, user):
+        data = run(f"walu json {ip}", capture_output=True, shell=True)
         if data.returncode == 0:
             data = json.loads(data.stdout.decode())
-            device, created = Device.objects.get_or_create(mac=data['mac'])
-            device.name = data['name'] or device.name
+            device, created = Device.objects.get_or_create(mac=data['mac'], defaults={**data, "user": user})
             device.ip = ip
 
             ActivityLog.objects.create(device=device, action=f"Discovered by IP: {ip}")

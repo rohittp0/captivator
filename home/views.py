@@ -4,11 +4,11 @@ from django.shortcuts import render
 from home.models import Device
 
 
-def try_unblock(ip):
+def try_unblock(ip, user):
     if not ip:
         return "No IP address found"
 
-    device = Device.get_by_ip(ip)
+    device = Device.get_by_ip(ip, user)
 
     if not device:
         return "Device discovery failed"
@@ -27,6 +27,6 @@ def index(request):
         return HttpResponseRedirect('admin/login/?next=/')
 
     ip = request.META.get('REMOTE_ADDR')
-    msg = try_unblock(ip)
+    msg = try_unblock(ip, request.user)
 
     return render(request, 'home/index.html', {'msg': msg})
