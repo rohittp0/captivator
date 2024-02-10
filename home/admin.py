@@ -10,22 +10,20 @@ class DeviceAdmin(admin.ModelAdmin):
     list_filter = ('user', 'blocked')
     search_fields = ('name', 'ip', 'mac')
     ordering = ('user', 'name')
-    readonly_fields = ('last_seen', 'blocked', 'online')
+    readonly_fields = ('last_seen', 'blocked', 'online', 'disabled')
 
     actions = ['block', 'unblock']
 
-    @staticmethod
-    def block(request, queryset):
+    @admin.action(description="Block")
+    def block(self, request, queryset):
         for device in queryset:
             device.block()
             device.disabled = True
             ActivityLog.objects.create(device=device, action="Disabled by admin")
             device.save()
 
-    block.short_description = "Block selected devices"
-
-    @staticmethod
-    def unblock(request, queryset):
+    @admin.action(description="Unblock")
+    def unblock(self, request, queryset):
         for device in queryset:
             device.disabled = False
             device.save()
