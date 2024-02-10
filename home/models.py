@@ -60,8 +60,12 @@ class Device(models.Model):
         data = run(f"walu json {ip}", capture_output=True, shell=True)
         if data.returncode == 0:
             data = json.loads(data.stdout.decode())
-            device, created = Device.objects.get_or_create(mac=data['mac'], defaults={**data, "user": user})
-            device.ip = ip
+            default = {"name": data['name'], "user": user, "ip": ip}
+            device, created = Device.objects.get_or_create(mac=data['mac'], defaults=default)
+
+            if not created:
+                device.ip = ip
+                device.save()
 
             ActivityLog.objects.create(device=device, action=f"Discovered by IP: {ip}")
 
